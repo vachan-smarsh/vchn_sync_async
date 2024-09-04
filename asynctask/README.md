@@ -233,7 +233,8 @@ Consumer Throughput: Initially, the consumer processed a fixed number of message
 
 ````
 import csv
-import asyncio , aiofiles
+import asyncio
+import aiofiles
 from confluent_kafka import Producer
 from confluent_kafka.admin import AdminClient, NewTopic
 
@@ -243,8 +244,7 @@ BROKER = "localhost:9092"
 BATCH_SIZE = 10000
 TOTAL_RECORDS = 1000000
 
-
-async def delivery_report(err, msg):
+def delivery_report(err, msg):
     if err:
         print(f"Delivery did not occur: {err}")
     else:
@@ -268,8 +268,7 @@ async def replicate(file_path, target_rows):
         return replicated_data[:target_rows]
 
 async def produce(producer, message):
-    loop = asyncio.get_running_loop()
-    producer.produce(TOPIC_NAME, value=message, callback=lambda err, msg: loop.call_soon_threadsafe(asyncio.create_task, delivery_report(err, msg)))
+    producer.produce(TOPIC_NAME, value=message, callback=delivery_report)
 
 async def produce_msg(producer, replicated_data):
     total_batches = len(replicated_data) // BATCH_SIZE
@@ -303,6 +302,7 @@ async def main():
 
 if __name__ == '__main__':
     asyncio.run(main())
+
 
 ````
 `cond.py`
